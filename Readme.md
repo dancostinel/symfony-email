@@ -1,4 +1,4 @@
-Three Ways To Access the Container Outside a Controller Class
+Three Ways To Access Symfony Container Outside a Controller Class
 =============================================================
 
 * # AppBundle/Outer/Outer.php
@@ -32,7 +32,7 @@ class Outer
 
 namespace AppBundle\Controller;
 
-# ...
+# use ...
 use AppBundle\Outer\Outer;
 
 class DefaultController extends Controller
