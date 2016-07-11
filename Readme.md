@@ -1,14 +1,51 @@
+Three Ways To Access the Container Outside a Controller Class
+=============================================================
+
+* # AppBundle/Outer/Outer.php
 ```
-# AppBundle/Controller/DefaultController.php
+<?php
+
+namespace AppBundle\Outer;
+
+class Outer
+{
+    /**
+     * @var\Doctrine\ORM\EntityManager
+     */
+     private $em;
+
+     public function __construct($em)
+     {
+        $this->em = $em;
+     }
+
+     public function show()
+     {
+        return $this->em->getRepository('AppBundle:Person')->findAll();
+     }
+}
 ```
 
-1. This
-2. is a
-3. list
+* # AppBundle/Controller/DefaultController.php
+```
+<?php
 
-* Bullet
-* points
+namespace AppBundle\Controller;
 
-http://www.dancostinel.com/resume
+# ...
+use AppBundle\Outer\Outer;
 
-[Resume](http://www.dancostinel.com/resume)
+class DefaultController extends Controller
+{
+    /**
+     * @Route("/show")
+     */
+     public function showAction()
+     {
+        $em = $this->getDoctrine()->getManager();
+        $outer = new Outer($em);
+        $persons = $outer->show();
+        return $this->render(..., ['persons'=>$persons]);
+     }
+}
+```
