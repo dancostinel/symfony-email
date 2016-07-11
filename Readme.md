@@ -1,4 +1,4 @@
-Three Ways To Access Symfony Container Outside a Controller Class
+Three Ways To Access Symfony's Container Outside a Controller Class
 =============================================================
 
 * # AppBundle/Outer/Outer.php
