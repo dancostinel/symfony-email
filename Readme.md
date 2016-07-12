@@ -3,30 +3,30 @@ Codeception
 
 ## Simple codeception setup for testing Symfony project
 
-1. Install new `symfony` project and cd into that directory. This will install the latest version.
+* Install new `symfony` project and cd into that directory. This will install the latest version.
 ```
 $ symfony new project
 cd project
 ```
-2. Install `codeception` into the project
+* Install `codeception` into the project
 ```
 project$ composer require codeception/codeception
 ```
-3. Initialize `codeception`. This will create all needed classes.
+* Initialize `codeception`. This will create all needed classes.
 ```
 project$ vendor/bin/codecept bootstrap
 ```
-4. To create a new acceptance test:
+* To create a new acceptance test:
 ```
 project$ vendor/bin/codecept generate:cest acceptance YourTestName
 ```
-5. Configure `tests/acceptance/parameters_test.yml`:
+* Configure `tests/acceptance/parameters_test.yml`:
 ```
 user: 'your_db_user'
 password: 'your_db_pass'
 db1: 'your_db_name'
 ```
-6. Configure `tests/acceptance.suite.yml`:
+* Configure `tests/acceptance.suite.yml`:
 ```
 class_name: WebGuy
 modules:
@@ -35,11 +35,11 @@ modules:
         - WebHelper
     config:
         PhpBrowser:
-            url: 'http://project.lh/app_dev.php' \# the URL of your project\
+            url: 'http://project.lh/app_dev.php' # the URL of your project
 ```
-7. Simple test code: `login`:
+* Simple test code: `login`:
 ```
-\# tests/acceptance/YourTestNameCest.php - this was generated at step 4\
+# tests/acceptance/YourTestNameCest.php - this was generated at step 4
 
 <?php
 use \WebGuy;
@@ -69,7 +69,7 @@ class YourTestNameCest
         //fail login as admin
         $I->wantTo("Fail the login as an admin");
         $I->amOnPage('/login');
-        $I->submitForm('#login_form', array( \# MAKE SURE YOUR FORM HAS THE ID LIKE THIS: id="login_form", OR WHATEVER YOU WANT...\
+        $I->submitForm('#login_form', array( # MAKE SURE YOUR FORM HAS THE ID LIKE THIS: id="login_form", OR WHATEVER YOU WANT...
             '_username' => $this->fail_user,
             '_password' => $this->fail_pass,
             'submit' => '_submit'
@@ -124,7 +124,7 @@ class YourTestNameCest
     }
 }
 ```
-8. Run the test
+* Run the test
 ```
 project$ vendor/bin/codecept run --steps tests/acceptance/YourTestNameCest.php
 ```
