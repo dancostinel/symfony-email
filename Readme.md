@@ -1,132 +1,58 @@
-Codeception
-===========
+How to send email with Symfony
+==============================
 
-## Simple codeception setup for testing Symfony project
+# Yahoo
 
-* Install new `symfony` project and cd into that directory. This will install the latest version.
+* Install new `symfony` project and cd into that directory. This will isntall the latest version.
 ```
 $ symfony new project
 cd project
 ```
-* Install `codeception` into the project
+* # app/config/config.yml
 ```
-project$ composer require codeception/codeception
+swiftmailer:
+    transport: "%mailer_transport%"
+    encryption: ssl
+    host:      "%mailer_host%"
+    username:  "%mailer_user%"
+    password:  "%mailer_password%"
+    spool:     { type: memory }
 ```
-* Initialize `codeception`. This will create all needed classes.
+* # app/config/parameters.yml
 ```
-project$ vendor/bin/codecept bootstrap
+parameters:
+    mailer_transport: smtp
+    mailer_host: smtp.mail.yahoo.com
+    mailer_user: your_account_name@yahoo.com
+    mailer_password: your_account_password
 ```
-* To create a new acceptance test:
+* # AppBundle/Controller/DefaultController.php
 ```
-project$ vendor/bin/codecept generate:cest acceptance YourTestName
-```
-* Configure `tests/acceptance/parameters_test.yml`:
-```
-user: 'your_db_user'
-password: 'your_db_pass'
-db1: 'your_db_name'
-```
-* Configure `tests/acceptance.suite.yml`:
-```
-class_name: WebGuy
-modules:
-    enabled:
-        - PhpBrowser
-        - WebHelper
-    config:
-        PhpBrowser:
-            url: 'http://project.lh/app_dev.php' # the URL of your project
-```
-* Simple test code: `login`:
-```
-# tests/acceptance/YourTestNameCest.php - this was generated at step 4
-
-<?php
-use \WebGuy;
-
-class YourTestNameCest
+/**
+ * @Route("/send")
+ */
+public function sendAction()
 {
-    private $admin_name = 'admin';
-    private $admin_pass = 'adminpass';
-    private $user_name  = 'user';
-    private $user_pass  = 'userpass';
-    private $fail_user  = 'failuser';
-    private $fail_pass  = 'failpass';
+    $this_is = 'this is';
+    $the_message = ' the message of the email';
+    $mailer = $this->get('mailer');
 
-    public function _before()
-    {
-
-    }
-
-    public function _after()
-    {
-
-    }
-
-    //tests
-    private function testAsAdmin(WebGuy $I)
-    {
-        //fail login as admin
-        $I->wantTo("Fail the login as an admin");
-        $I->amOnPage('/login');
-        $I->submitForm('#login_form', array( # MAKE SURE YOUR FORM HAS THE ID LIKE THIS: id="login_form", OR WHATEVER YOU WANT...
-            '_username' => $this->fail_user,
-            '_password' => $this->fail_pass,
-            'submit' => '_submit'
-        ));
-        $I->seeCurrentUrlEquals('/app_dev.php/login');
-        $I->see('Invalid credentials.');
-
-        //login as an admin and test the home-page, if after the success login, you redirect the admin back to home page
-        $I->wantTo("Login as an admin");
-        $I->amOnPage('/login');
-        $I->submitForm('#login_form', array(
-            '_username' => $this->admin_name,
-            '_password' => $this->admin_pass,
-            'submit' => '_submit'
-        ));
-        $I->seeCurrentUrlEquals('/app_dev.php/');
-        $I->see('Logout');
-        // create whatever asserts you need for testing the page
-    }
-
-    private function testAsUser(WebGuy $I)
-    {
-        //fail login as regular user
-        $I->wantTo("Fail the login as a regular user");
-        $I->amOnPage('/login');
-        $I->submitForm('#login_form', array(
-            '_username' => $this->fail_user,
-            '_password' => $this->fail_pass,
-            'submit' => '_submit'
-        ));
-        $I->seeCurrentUrlEquals('/app_dev.php/login');
-        $I->see('Invalid credentials.');
-
-        //login as regular user and test the home-page, if after the success login, you redirect the admin back to home page
-        $I->wantTo("Login as regular user");
-        $I->amOnPage('/login');
-        $I->submitForm('#login_form', array(
-            '_username' => $this->user_name,
-            '_password' => $this->user_pass,
-            'submit' => '_submit'
-        ));
-        $I->seeCurrentUrlEquals('/app_dev.php/');
-        $I->see('Logout');
-        // create whatever asserts you need for testing the page
-    }
-
-    //main method
-    public function completeScenario(WebGuy $I)
-    {
-        $this->testAsAdmin($I);
-        $this->testAsUser($I);
-    }
+    $message = \Swift_Message::newInstance()
+        ->setSubject('The Subject for this Message')
+        ->setFrom($this->container->getParameter('mailer_user'))
+        ->setTo('any_account_name@any_domain.whatever')
+        ->setBody($this->renderView('default/email.html.twig', ['this'=>$this_is, 'message'=>$the_message]))
+    ;
+    $mailer->send($message);
+    return new Response('<html><body>The email has been sent successfully!</body></html>');
 }
 ```
-* Run the test
+* # app/Resources/views/default/email.html.twig
 ```
-project$ vendor/bin/codecept run --steps tests/acceptance/YourTestNameCest.php
+{{ this }}{{ message }}
 ```
-
-### IMPORTANT: Remember to always create a test database. Do `NOT` work with the prod database! You can dump your prod database, and paste the generated sql code inside `tests/_data/dump.sql` file
+* First start the symfony's build-in server:
+```
+project$ php bi/console server:run
+```
+* To run and send the email, access in the browser the following address `http://127.0.0.1/send`.
