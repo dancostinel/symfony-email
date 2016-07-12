@@ -57,6 +57,7 @@ class DefaultController extends Controller
      }
 }
 ```
+===============================================================================================
 
 2. Extending ContainerInterface
 
@@ -114,6 +115,8 @@ class DefaultController extends Controller
     }
 }
 ```
+
+=====================================================================================================
 
 3. Extending Symfony's Controller Abstract Class
 
