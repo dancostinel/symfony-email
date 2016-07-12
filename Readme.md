@@ -1,5 +1,12 @@
 Three Ways To Access Symfony's Container Outside a Controller Class
 =============================================================
+Assuming there already exists a database set up, with a table in it, named ```persons```
+```
+id          name
+1           John
+2           Mark
+```
+
 1. Using Dependency Injection
 
 * # AppBundle/Outer/Outer.php
@@ -93,6 +100,57 @@ services:
 namespace AppBundle\Controller;
 
 #use ...
+
+class DefaultController extends Controller
+{
+    #...
+    /**
+     * @Route("/show")
+     */
+    public function showAction()
+    {
+        $persons = $this->get('app_services')->show();
+        return $this->render('AppBundle:Default:show.html.twig',['persons'=>$persons]);
+    }
+}
+```
+
+3. Extending Symfony's Controller Abstract Class
+
+* # AppBundle/Services/Services.php
+```
+<?php
+
+namespace AppBundle\Services;
+
+use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+
+class Services extends Controller
+{
+    public function show()
+    {
+        $em = $this->getDoctrine()->getManager();
+        return $em->getRepository('AppBundle:Person')->findAll();
+    }
+}
+```
+
+* # app/config/services.yml
+```
+services:
+    app_services:
+        class: AppBundle\Services\Services
+        calls:
+          - [setContainer, ["@service_container"]]
+```
+
+* # AppBundle/Controller/DefaultController.php
+```
+<?php
+
+namespace AppBundle\Controller;
+
+#use...
 
 class DefaultController extends Controller
 {
