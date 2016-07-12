@@ -1,170 +1,132 @@
-Three Ways To Access Symfony's Container Outside a Controller Class
-=============================================================
-Assuming there already exists a database set up, with a table in it, named ```persons```
-```
-id          name
-1           John
-2           Mark
-```
+Codeception
+===========
 
-## Using Dependency Injection
+## Simple codeception setup for testing Symfony project
 
-* # AppBundle/Outer/Outer.php
+1. Install new `symfony` project and cd into that directory. This will install the latest version.
 ```
+$ symfony new project
+cd project
+```
+2. Install `codeception` into the project
+```
+project$ composer require codeception/codeception
+```
+3. Initialize `codeception`. This will create all needed classes.
+```
+project$ vendor/bin/codecept bootstrap
+```
+4. To create a new acceptance test:
+```
+project$ vendor/bin/codecept generate:cest acceptance YourTestName
+```
+5. Configure `tests/acceptance/parameters_test.yml`:
+```
+user: 'your_db_user'
+password: 'your_db_pass'
+db1: 'your_db_name'
+```
+6. Configure `tests/acceptance.suite.yml`:
+```
+class_name: WebGuy
+modules:
+    enabled:
+        - PhpBrowser
+        - WebHelper
+    config:
+        PhpBrowser:
+            url: 'http://project.lh/app_dev.php' \# the URL of your project\
+```
+7. Simple test code: `login`:
+```
+\# tests/acceptance/YourTestNameCest.php - this was generated at step 4\
+
 <?php
+use \WebGuy;
 
-namespace AppBundle\Outer;
-
-class Outer
+class YourTestNameCest
 {
-    /**
-     * @var\Doctrine\ORM\EntityManager
-     */
-     private $em;
+    private $admin_name = 'admin';
+    private $admin_pass = 'adminpass';
+    private $user_name  = 'user';
+    private $user_pass  = 'userpass';
+    private $fail_user  = 'failuser';
+    private $fail_pass  = 'failpass';
 
-     public function __construct($em)
-     {
-        $this->em = $em;
-     }
-
-     public function show()
-     {
-        return $this->em->getRepository('AppBundle:Person')->findAll();
-     }
-}
-```
-
-* # AppBundle/Controller/DefaultController.php
-```
-<?php
-
-namespace AppBundle\Controller;
-
-# use ...
-use AppBundle\Outer\Outer;
-
-class DefaultController extends Controller
-{
-    /**
-     * @Route("/show")
-     */
-     public function showAction()
-     {
-        $em = $this->getDoctrine()->getManager();
-        $outer = new Outer($em);
-        $persons = $outer->show();
-        return $this->render(..., ['persons'=>$persons]);
-     }
-}
-```
-===============================================================================================
-
-## Extending ContainerInterface
-
-* # AppBundle/Services/Services.php
-```
-<?php
-
-namespace AppBundle\Services;
-
-use Symfony\Component\DependencyInjection\ContainerInterface as Container;
-
-class Services
-{
-    private $container;
-
-    public function __construct(Container $container)
+    public function _before()
     {
-        $this->container = $container;
+
     }
 
-    public function show()
+    public function _after()
     {
-        $em = $this->container->get('doctrine');
-        return $em->getRepository('AppBundle:Person')->findAll();
+
     }
-}
-```
 
-* # app/config/services.yml
-```
-services:
-    app_services:
-        class: AppBundle\Services\Services
-        arguments: ["@service_container"]
-```
-
-* # AppBundle/Controller/DefaultController.php
-```
-<?php
-
-namespace AppBundle\Controller;
-
-#use ...
-
-class DefaultController extends Controller
-{
-    #...
-    /**
-     * @Route("/show")
-     */
-    public function showAction()
+    //tests
+    private function testAsAdmin(WebGuy $I)
     {
-        $persons = $this->get('app_services')->show();
-        return $this->render('AppBundle:Default:show.html.twig',['persons'=>$persons]);
+        //fail login as admin
+        $I->wantTo("Fail the login as an admin");
+        $I->amOnPage('/login');
+        $I->submitForm('#login_form', array( \# MAKE SURE YOUR FORM HAS THE ID LIKE THIS: id="login_form", OR WHATEVER YOU WANT...\
+            '_username' => $this->fail_user,
+            '_password' => $this->fail_pass,
+            'submit' => '_submit'
+        ));
+        $I->seeCurrentUrlEquals('/app_dev.php/login');
+        $I->see('Invalid credentials.');
+
+        //login as an admin and test the home-page, if after the success login, you redirect the admin back to home page
+        $I->wantTo("Login as an admin");
+        $I->amOnPage('/login');
+        $I->submitForm('#login_form', array(
+            '_username' => $this->admin_name,
+            '_password' => $this->admin_pass,
+            'submit' => '_submit'
+        ));
+        $I->seeCurrentUrlEquals('/app_dev.php/');
+        $I->see('Logout');
+        // create whatever asserts you need for testing the page
     }
-}
-```
 
-=====================================================================================================
-
-## Extending Symfony's Controller Abstract Class
-
-* # AppBundle/Services/Services.php
-```
-<?php
-
-namespace AppBundle\Services;
-
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-
-class Services extends Controller
-{
-    public function show()
+    private function testAsUser(WebGuy $I)
     {
-        $em = $this->getDoctrine()->getManager();
-        return $em->getRepository('AppBundle:Person')->findAll();
+        //fail login as regular user
+        $I->wantTo("Fail the login as a regular user");
+        $I->amOnPage('/login');
+        $I->submitForm('#login_form', array(
+            '_username' => $this->fail_user,
+            '_password' => $this->fail_pass,
+            'submit' => '_submit'
+        ));
+        $I->seeCurrentUrlEquals('/app_dev.php/login');
+        $I->see('Invalid credentials.');
+
+        //login as regular user and test the home-page, if after the success login, you redirect the admin back to home page
+        $I->wantTo("Login as regular user");
+        $I->amOnPage('/login');
+        $I->submitForm('#login_form', array(
+            '_username' => $this->user_name,
+            '_password' => $this->user_pass,
+            'submit' => '_submit'
+        ));
+        $I->seeCurrentUrlEquals('/app_dev.php/');
+        $I->see('Logout');
+        // create whatever asserts you need for testing the page
+    }
+
+    //main method
+    public function completeScenario(WebGuy $I)
+    {
+        $this->testAsAdmin($I);
+        $this->testAsUser($I);
     }
 }
 ```
-
-* # app/config/services.yml
+8. Run the test
 ```
-services:
-    app_services:
-        class: AppBundle\Services\Services
-        calls:
-          - [setContainer, ["@service_container"]]
+project$ vendor/bin/codecept run --steps tests/acceptance/YourTestNameCest.php
 ```
 
-* # AppBundle/Controller/DefaultController.php
-```
-<?php
-
-namespace AppBundle\Controller;
-
-#use...
-
-class DefaultController extends Controller
-{
-    #...
-    /**
-     * @Route("/show")
-     */
-    public function showAction()
-    {
-        $persons = $this->get('app_services')->show();
-        return $this->render('AppBundle:Default:show.html.twig',['persons'=>$persons]);
-    }
-}
-```
+### IMPORTANT: Remember to always create a test database. Do `NOT` work with the prod database! You can dump your prod database, and paste the generated sql code inside `tests/_data/dump.sql` file
