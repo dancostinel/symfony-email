@@ -53,7 +53,7 @@ public function sendAction()
 ```
 * First start the symfony's build-in server:
 ```
-project$ php bi/console server:run
+project$ php bin/console server:run
 ```
 * To run and send the email, access in the browser the following address `http://127.0.0.1/send`.
 
@@ -105,6 +105,6 @@ public function sendAction()
 ```
 * First start the symfony's build-in server:
 ```
-project$ php bi/console server:run
+project$ php bin/console server:run
 ```
 * To run and send the email, access in the browser the following address `http://127.0.0.1/send`.
