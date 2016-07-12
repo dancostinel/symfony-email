@@ -7,7 +7,7 @@ id          name
 2           Mark
 ```
 
-1. Using Dependency Injection
+## Using Dependency Injection
 
 * # AppBundle/Outer/Outer.php
 ```
@@ -59,7 +59,7 @@ class DefaultController extends Controller
 ```
 ===============================================================================================
 
-2. Extending ContainerInterface
+## Extending ContainerInterface
 
 * # AppBundle/Services/Services.php
 ```
@@ -118,7 +118,7 @@ class DefaultController extends Controller
 
 =====================================================================================================
 
-3. Extending Symfony's Controller Abstract Class
+## Extending Symfony's Controller Abstract Class
 
 * # AppBundle/Services/Services.php
 ```
